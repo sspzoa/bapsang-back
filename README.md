@@ -1,0 +1,2 @@
+# fastApiProject
+ Learning fastApi
