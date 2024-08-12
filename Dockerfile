@@ -1,4 +1,4 @@
-FROM python:3.12.5-alpine
+FROM python:3.12.5
 
 WORKDIR /code
 
@@ -8,6 +8,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
-EXPOSE 8080
-
-CMD ["uvicorn", "app.main:app", "--port", "8080"]
+CMD ["uvicorn", "app.main:app"]
