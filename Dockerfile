@@ -1,4 +1,4 @@
-FROM python:3.12-apline
+FROM python:3.12.5-apline
 
 WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
