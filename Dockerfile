@@ -1,15 +1,11 @@
-FROM python:3.12.5-bookworm
+FROM python:3.12.5-alpine
 
-WORKDIR /app
+WORKDIR /code
 
-COPY . /app
+COPY ./requirements.txt /code/requirements.txt
 
-RUN python -m venv venv
-ENV VIRTUAL_ENV=/app/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./app /code/app
 
-EXPOSE 8000
-
-CMD ["python", "src/main.py"]
+CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
