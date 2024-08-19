@@ -9,15 +9,3 @@ GET http://127.0.0.1:8000/hello/User
 Accept: application/json
 
 ###
-
-POST http://127.0.0.1:8000/items
-Content-Type: application/json
-
-{
-  "name": "Foo",
-  "description": "An optional description",
-  "price": 45.2,
-  "tax": 3.5
-}
-
-###
