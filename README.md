@@ -1,2 +1,2 @@
-# fastApiProject
- Learning fastApi
+# Bapsang Server
+ Project Bapsang.
