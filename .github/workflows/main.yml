@@ -54,6 +54,6 @@ jobs:
       - name: Docker run
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          docker run -d -p 8080:8080 --name go_cicd --restart always \
+          docker run -d -p 8000:8000 --name go_cicd --restart always \
             -e OPENAI_API_KEYL=${{ secrets.OPENAI_API_KEY }} \
             ${{ env.DOCKER_IMAGE }}:latest
