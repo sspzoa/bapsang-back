@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from openai import OpenAI
 import json
 import uuid
+import aiohttp
 import requests
 
 # Set up logging
@@ -37,18 +38,19 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         unique_filename = f"{uuid.uuid4()}{file_extension}"
         file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
+        contents = await file.read()
         with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
+            buffer.write(contents)
 
         base_url = str(request.base_url)
         if base_url.startswith("http://"):
             base_url = "https://" + base_url[7:]
         file_url = f"{base_url}uploads/{unique_filename}"
 
-        logger.info(f"Generated file URL: {file_url}")
-
-        if not is_url_accessible(file_url):
-            raise HTTPException(status_code=500, detail="Generated URL is not accessible")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(file_url) as response:
+                if response.status != 200:
+                    raise HTTPException(status_code=500, detail="File upload failed")
 
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
@@ -63,30 +65,26 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         }
         """
 
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": text},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": file_url,
-                                },
-                            },
-                        ],
-                    }
-                ],
-                max_tokens=300
-            )
-        except Exception as e:
-            logger.error(f"OpenAI API error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
+        print(f"file_url: {file_url}")
 
-        logger.info(f"OpenAI API response: {response}")
+        response = client.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": text},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": file_url,
+                            },
+                        },
+                    ],
+                }
+            ],
+            max_tokens=300
+        )
 
         food_positions = json.loads(response.choices[0].message.content)
 
@@ -99,8 +97,6 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
 
         return JSONResponse(content=formatted_response)
     except json.JSONDecodeError:
-        logger.error("Failed to parse JSON response")
         raise HTTPException(status_code=500, detail="Failed to parse JSON response")
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

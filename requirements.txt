@@ -2,3 +2,5 @@ fastapi[standard]
 uvicorn[standard]
 pydantic[standard]
 openai
+aiohttp
+requests
