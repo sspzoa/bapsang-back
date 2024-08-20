@@ -28,6 +28,8 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
             buffer.write(await file.read())
 
         base_url = str(request.base_url)
+        if base_url.startswith("http://"):
+            base_url = "https://" + base_url[7:]
         file_url = f"{base_url}uploads/{unique_filename}"
 
         text = """
