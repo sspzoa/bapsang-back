@@ -1,9 +1,9 @@
 import os
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 import json
+import uuid
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
@@ -11,14 +11,23 @@ client = OpenAI(
 
 app = FastAPI()
 
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-class ChatRequest(BaseModel):
-    image_url: str
-
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.post("/chat")
-async def chat_with_gpt(request: ChatRequest):
+async def chat_with_gpt(file: UploadFile = File(...)):
     try:
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        file_url = f"{app.url_path_for('uploads')}/{unique_filename}"
+
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
         
@@ -33,7 +42,7 @@ async def chat_with_gpt(request: ChatRequest):
         """
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4-vision-preview",
             messages=[
                 {
                     "role": "user",
@@ -42,7 +51,7 @@ async def chat_with_gpt(request: ChatRequest):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": request.image_url,
+                                "url": file_url,
                             },
                         },
                     ],
