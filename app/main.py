@@ -3,7 +3,6 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from openai import OpenAI
-import asyncio
 import json
 import uuid
 
@@ -47,7 +46,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         }
         """
 
-        print(f"Image URL before sending to OpenAI: {file_url}")
+        print(f"file_url: {file_url}")
 
         response = client.chat.completions.create(
             model="gpt-4o",
