@@ -58,7 +58,9 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
                         {"type": "text", "text": text},
                         {
                             "type": "image_url",
-                            "url": file_url,
+                            "image_url": {
+                                "url": file_url,
+                            },
                         },
                     ],
                 }
