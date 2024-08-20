@@ -68,7 +68,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         print(f"file_url: {file_url}")
 
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
