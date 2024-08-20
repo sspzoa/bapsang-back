@@ -59,7 +59,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": file_url,
+                                "url": "https://api.sspzoa.io/uploads/4aea6a00-2122-4b27-b162-1f761e0fc5b1.jpg",
                             },
                         },
                     ],
