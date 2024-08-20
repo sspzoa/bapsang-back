@@ -34,8 +34,6 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
             base_url = "https://" + base_url[7:]
         file_url = f"{base_url}uploads/{unique_filename}"
 
-        await asyncio.sleep(1)
-
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
         
@@ -60,9 +58,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
                         {"type": "text", "text": text},
                         {
                             "type": "image_url",
-                            "image_url": {
-                                "url": f"{file_url}",
-                            },
+                            "url": file_url,
                         },
                     ],
                 }
