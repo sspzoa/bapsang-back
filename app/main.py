@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from openai import OpenAI
 import json
 import uuid
@@ -26,7 +27,7 @@ async def chat_with_gpt(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             buffer.write(await file.read())
 
-        file_url = f"{app.url_path_for('uploads')}/{unique_filename}"
+        file_url = f"/uploads/{unique_filename}"
 
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
@@ -51,7 +52,7 @@ async def chat_with_gpt(file: UploadFile = File(...)):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": file_url,
+                                "url": f"{app.url_path_for('uploads', path=unique_filename)}",
                             },
                         },
                     ],
@@ -69,7 +70,7 @@ async def chat_with_gpt(file: UploadFile = File(...)):
             ]
         }
 
-        return formatted_response
+        return JSONResponse(content=formatted_response)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse JSON response")
     except Exception as e:
