@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from openai import OpenAI
@@ -18,7 +18,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.post("/chat")
-async def chat_with_gpt(file: UploadFile = File(...)):
+async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
     try:
         file_extension = os.path.splitext(file.filename)[1]
         unique_filename = f"{uuid.uuid4()}{file_extension}"
@@ -27,7 +27,8 @@ async def chat_with_gpt(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             buffer.write(await file.read())
 
-        file_url = f"/uploads/{unique_filename}"
+        base_url = str(request.base_url)
+        file_url = f"{base_url}uploads/{unique_filename}"
 
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
@@ -42,8 +43,10 @@ async def chat_with_gpt(file: UploadFile = File(...)):
         }
         """
 
+        print(f"Image URL before sending to OpenAI: {file_url}")
+
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
@@ -52,7 +55,7 @@ async def chat_with_gpt(file: UploadFile = File(...)):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"{app.url_path_for('uploads', path=unique_filename)}",
+                                "url": file_url,
                             },
                         },
                     ],
