@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from openai import OpenAI
+import asyncio
 import json
 import uuid
 
@@ -16,6 +17,7 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 
 @app.post("/chat")
 async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
@@ -31,6 +33,8 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         if base_url.startswith("http://"):
             base_url = "https://" + base_url[7:]
         file_url = f"{base_url}uploads/{unique_filename}"
+
+        await asyncio.sleep(1)
 
         text = """
         밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
