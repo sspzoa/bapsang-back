@@ -3,7 +3,6 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from openai import OpenAI
-import asyncio
 import json
 import uuid
 import time
@@ -19,6 +18,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
+MAX_RETRIES = 3
 
 @app.post("/chat")
 async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
@@ -50,26 +50,35 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
 
         print(f"Image URL before sending to OpenAI: {file_url}")
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": text},
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4-vision-preview",
+                    messages=[
                         {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": file_url,
-                            },
-                        },
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": text},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": file_url,
+                                    },
+                                },
+                            ],
+                        }
                     ],
-                }
-            ],
-            max_tokens=300
-        )
+                    max_tokens=300
+                )
 
-        food_positions = json.loads(response.choices[0].message.content)
+                food_positions = json.loads(response.choices[0].message.content)
+                break  # If successful, break out of the retry loop
+            except Exception as e:
+                if 'Invalid image' in str(e) and attempt < MAX_RETRIES - 1:
+                    print(f"Attempt {attempt + 1} failed. Retrying...")
+                    time.sleep(1)  # Wait for 1 second before retrying
+                else:
+                    raise  # If it's not an 'Invalid image' error or we've run out of retries, re-raise the exception
 
         formatted_response = {
             "food_positions": [
