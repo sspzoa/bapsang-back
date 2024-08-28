@@ -36,7 +36,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
           description="업로드된 밥상 이미지에서 각 음식의 위치를 시계 방향으로 분석합니다.",
           response_description="각 음식의 이름과 시계 방향 위치를 포함하는 JSON 객체")
 async def analyze_food_positions(
-        image: UploadFile = File(..., description="분석할 한식 밥상 이미지 파일"),
+        image: UploadFile = File(..., description="분석할 밥상 이미지 파일"),
         _: str = Depends(verify_token)
 ):
     try:
