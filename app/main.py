@@ -25,6 +25,9 @@ class FoodPosition(BaseModel):
 class AnalysisResponse(BaseModel):
     food_positions: List[FoodPosition]
 
+class ErrorResponse(BaseModel):
+    detail: str
+
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):
     if credentials.credentials != ACCESS_TOKEN:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -34,7 +37,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
           response_model=AnalysisResponse,
           summary="밥상 이미지 분석",
           description="업로드된 밥상 이미지에서 각 음식의 위치를 시계 방향으로 분석합니다.",
-          response_description="각 음식의 이름과 시계 방향 위치를 포함하는 JSON 객체")
+          response_description="각 음식의 이름과 시계 방향 위치를 포함하는 JSON 객체",
+          responses={
+              200: {"model": AnalysisResponse, "description": "성공적으로 분석된 결과"},
+              401: {"model": ErrorResponse, "description": "인증 실패"},
+              500: {"model": ErrorResponse, "description": "서버 내부 오류 (OpenAI API 오류 포함)"}
+          })
 async def analyze_food_positions(
         image: UploadFile = File(..., description="분석할 밥상 이미지 파일"),
         _: str = Depends(verify_token)
