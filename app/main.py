@@ -53,7 +53,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         for attempt in range(MAX_RETRIES):
             try:
                 response = client.chat.completions.create(
-                    model="gpt-4-vision-preview",
+                    model="gpt-4o",
                     messages=[
                         {
                             "role": "user",
