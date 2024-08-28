@@ -6,6 +6,7 @@ from openai import OpenAI
 import asyncio
 import json
 import uuid
+import time
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
@@ -48,6 +49,8 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
         """
 
         print(f"Image URL before sending to OpenAI: {file_url}")
+
+        time.sleep(5)
 
         response = client.chat.completions.create(
             model="gpt-4o",
