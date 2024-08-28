@@ -50,8 +50,6 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
 
         print(f"Image URL before sending to OpenAI: {file_url}")
 
-        time.sleep(5)
-
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -62,7 +60,7 @@ async def chat_with_gpt(request: Request, file: UploadFile = File(...)):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": "https://api.sspzoa.io/uploads/d6fb3cc5-b448-44f0-9a10-500b3c1b5dc7.jpg",
+                                "url": file_url,
                             },
                         },
                     ],
