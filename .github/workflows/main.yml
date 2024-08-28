@@ -39,6 +39,7 @@ jobs:
           tags: ${{ env.DOCKER_IMAGE }}:latest
           build-args: |
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}
 
   deploy:
     needs: build
@@ -56,4 +57,5 @@ jobs:
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
           docker run -d -p 8000:8000 --name go_cicd --restart always \
             -e OPENAI_API_KEYL=${{ secrets.OPENAI_API_KEY }} \
+            -e ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             ${{ env.DOCKER_IMAGE }}:latest
