@@ -6,10 +6,17 @@ from pydantic import BaseModel
 from typing import List
 from openai import OpenAI
 import json
+from slowapi.errors import RateLimitExceeded
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app = FastAPI(
     title="밥상 API",
     description="이 API는 밥상 이미지를 분석하여 각 음식의 위치를 시계 방향으로 식별하고 반환합니다.",
@@ -43,6 +50,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
               401: {"model": ErrorResponse, "description": "인증 실패"},
               500: {"model": ErrorResponse, "description": "서버 내부 오류 (OpenAI API 오류 포함)"}
           })
+@limiter.limit("1/5seconds")
 async def analyze_food_positions(
         image: UploadFile = File(..., description="분석할 밥상 이미지 파일"),
         _: str = Depends(verify_token)
