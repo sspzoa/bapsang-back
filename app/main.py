@@ -1,26 +1,20 @@
 import os
 import base64
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from typing import List
 from openai import OpenAI
 import json
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 
-limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="밥상 API",
     description="이 API는 밥상 이미지를 분석하여 각 음식의 위치를 시계 방향으로 식별하고 반환합니다.",
     version="1.0.0"
 )
-app.add_middleware(SlowAPIMiddleware)
 
 security = HTTPBearer()
 
@@ -47,12 +41,9 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
           responses={
               200: {"model": AnalysisResponse, "description": "성공적으로 분석된 결과"},
               401: {"model": ErrorResponse, "description": "인증 실패"},
-              429: {"model": ErrorResponse, "description": "너무 많은 요청"},
               500: {"model": ErrorResponse, "description": "서버 내부 오류 (OpenAI API 오류 포함)"}
           })
-@limiter.limit("1/5seconds")
 async def analyze_food_positions(
-        request: Request,
         image: UploadFile = File(..., description="분석할 밥상 이미지 파일"),
         _: str = Depends(verify_token)
 ):
@@ -74,7 +65,7 @@ async def analyze_food_positions(
         """
 
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
@@ -98,7 +89,3 @@ async def analyze_food_positions(
         raise HTTPException(status_code=500, detail="Failed to parse JSON response")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return _rate_limit_exceeded_handler(request, exc)

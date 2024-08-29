@@ -4,4 +4,3 @@ pydantic[standard]
 openai
 aiohttp
 requests
-slowapi
