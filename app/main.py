@@ -62,6 +62,12 @@ async def analyze_food_positions(
             "된장국": "11시",
             "김치": "8시"
         }
+        
+        만약 음식을 찾을 수 없다면, 이렇게 답변해줘.
+        
+        {
+            "오류": "음식을 찾을 수 없습니다.",
+        }
         """
 
         response = client.chat.completions.create(
