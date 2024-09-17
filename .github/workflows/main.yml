@@ -7,7 +7,7 @@ on:
 env:
   DOCKER_IMAGE: ghcr.io/${{ github.actor }}/bapsang_back
   VERSION: ${{ github.sha }}
-  NAME: go_cicd
+  NAME: bapsang_cicd
 
 jobs:
   build:
