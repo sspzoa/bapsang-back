@@ -52,7 +52,7 @@ async def analyze_food_positions(
         b64_image = base64.b64encode(image_content).decode('utf-8')
 
         prompt = """
-        밥상의 가장 아래쪽 가운데, 카메라가 바라보는 방향 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
+        밥상의 중앙을 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
         
         응답은 다른 텍스트 없이 Json 형식으로 해줘 
         
