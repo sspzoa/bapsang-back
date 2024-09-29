@@ -1,6 +1,6 @@
-fastapi[all]
+fastapi[standard]
 uvicorn[standard]
-pydantic[email]
+pydantic[standard]
 openai
 aiohttp
 requests
