@@ -39,12 +39,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
           description="업로드된 밥상 이미지에서 각 음식의 위치를 시계 방향으로 분석합니다.",
           response_description="각 음식의 이름과 시계 방향 위치를 포함하는 JSON 객체",
           responses={
-              200: {"model": AnalysisResponse, "description": "성공적으로 분석된 결과"},
-              401: {"model": ErrorResponse, "description": "인증 실패"},
+              200: {"model": AnalysisResponse},
+              401: {"model": ErrorResponse, "description": "인증 실패 (엑세스 토큰 오류)"},
               500: {"model": ErrorResponse, "description": "서버 내부 오류 (OpenAI API 오류 포함)"}
           })
 async def analyze_food_positions(
-        image: UploadFile = File(..., description="분석할 밥상 이미지 파일"),
+        image: UploadFile = File(..., description="밥상 이미지"),
         _: str = Depends(verify_token)
 ):
     try:
@@ -52,7 +52,7 @@ async def analyze_food_positions(
         b64_image = base64.b64encode(image_content).decode('utf-8')
 
         prompt = """
-        밥상의 가장 아래쪽 가운데를 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
+        밥상의 가장 아래쪽 가운데, 카메라가 바라보는 방향 기준으로 각 음식들이 몇 시 방향에 있는지 구해줘.
         
         응답은 다른 텍스트 없이 Json 형식으로 해줘 
         
@@ -71,7 +71,7 @@ async def analyze_food_positions(
         """
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="chatgpt-4o-latest",
             messages=[
                 {
                     "role": "user",
